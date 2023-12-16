@@ -1,0 +1,706 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Banned104">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="N32串口空闲中断DMA接收不定长数据N32串口接收与发送接收部分如下图，USART_DAT寄存器只有8位可用，也就是一次写入一个字节；调用:  USART1-&gt;DAT‍  ‍ DMA空闲中断接收不定长数据：在UART1空闲中断服务函数中禁用DMA通道之后再启用DMA通道 DMA才不会从尾部继续写入数据使用如下 DMA_Channel_Enable​&#x2F;DMA_Channel_Dis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="N32串口空闲中断DMA接收不定长数据">
+<meta property="og:url" content="http://example.com/2023/12/17/N32%E4%B8%B2%E5%8F%A3%E7%A9%BA%E9%97%B2%E4%B8%AD%E6%96%ADDMA%E6%8E%A5%E6%94%B6%E4%B8%8D%E5%AE%9A%E9%95%BF%E6%95%B0%E6%8D%AE/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="N32串口空闲中断DMA接收不定长数据N32串口接收与发送接收部分如下图，USART_DAT寄存器只有8位可用，也就是一次写入一个字节；调用:  USART1-&gt;DAT‍  ‍ DMA空闲中断接收不定长数据：在UART1空闲中断服务函数中禁用DMA通道之后再启用DMA通道 DMA才不会从尾部继续写入数据使用如下 DMA_Channel_Enable​&#x2F;DMA_Channel_Dis">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://picgo-public-1215.oss-cn-shenzhen.aliyuncs.com/202312170041208.png">
+<meta property="og:image" content="https://picgo-public-1215.oss-cn-shenzhen.aliyuncs.com/202312170041209.png">
+<meta property="article:published_time" content="2023-12-16T16:44:49.325Z">
+<meta property="article:modified_time" content="2023-12-16T16:44:28.402Z">
+<meta property="article:author" content="Banned104">
+<meta property="article:tag" content="嵌入式">
+<meta property="article:tag" content="ARM">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://picgo-public-1215.oss-cn-shenzhen.aliyuncs.com/202312170041208.png">
+  
+  
+  
+  <title>N32串口空闲中断DMA接收不定长数据 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":"6ae032dfc86e4765e12f04dae7715eee","google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+    <!-- Baidu Analytics -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?6ae032dfc86e4765e12f04dae7715eee";
+          var s = document.getElementsByTagName("script")[0];
+          s.parentNode.insertBefore(hm, s);
+        })();
+      }
+    </script>
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="N32串口空闲中断DMA接收不定长数据"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-12-17 00:44" pubdate>
+          December 17, 2023 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          515 words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          5 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">N32串口空闲中断DMA接收不定长数据</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="N32串口空闲中断DMA接收不定长数据"><a href="#N32串口空闲中断DMA接收不定长数据" class="headerlink" title="N32串口空闲中断DMA接收不定长数据"></a>N32串口空闲中断DMA接收不定长数据</h1><h4 id="N32串口接收与发送"><a href="#N32串口接收与发送" class="headerlink" title="N32串口接收与发送"></a>N32串口接收与发送</h4><h6 id="接收部分如下图，USART-DAT寄存器只有8位可用，也就是一次写入一个字节；调用-USART1-DAT"><a href="#接收部分如下图，USART-DAT寄存器只有8位可用，也就是一次写入一个字节；调用-USART1-DAT" class="headerlink" title="接收部分如下图，USART_DAT寄存器只有8位可用，也就是一次写入一个字节；调用:  USART1-&gt;DAT"></a>接收部分如下图，USART_DAT寄存器只有8位可用，也就是一次写入一个字节；调用:  USART1-&gt;DAT</h6><p>‍</p>
+<p><img src="https://picgo-public-1215.oss-cn-shenzhen.aliyuncs.com/202312170041208.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<p>‍</p>
+<h5 id="DMA空闲中断接收不定长数据："><a href="#DMA空闲中断接收不定长数据：" class="headerlink" title="DMA空闲中断接收不定长数据："></a>DMA空闲中断接收不定长数据：</h5><h6 id="在UART1空闲中断服务函数中禁用DMA通道之后再启用DMA通道-DMA才不会从尾部继续写入数据"><a href="#在UART1空闲中断服务函数中禁用DMA通道之后再启用DMA通道-DMA才不会从尾部继续写入数据" class="headerlink" title="在UART1空闲中断服务函数中禁用DMA通道之后再启用DMA通道 DMA才不会从尾部继续写入数据"></a>在UART1空闲中断服务函数中禁用DMA通道之后再启用DMA通道 DMA才不会从尾部继续写入数据</h6><p>使用如下</p>
+<p><code>DMA_Channel_Enable</code>​&#x2F;<code>DMA_Channel_Disable</code>​</p>
+<p>而不是使用</p>
+<p><code>USART_DMA_Transfer_Disable</code>​&#x2F;​<code>USART_DMA_Transfer_Enable</code>​</p>
+<p>‍</p>
+<h6 id="配置DMAChannel对应的DMA请求DMA-Channel-Request-Remap​"><a href="#配置DMAChannel对应的DMA请求DMA-Channel-Request-Remap​" class="headerlink" title="配置DMAChannel对应的DMA请求DMA_Channel_Request_Remap​"></a>配置DMAChannel对应的DMA请求<code>DMA_Channel_Request_Remap</code>​</h6><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs C">DMA_Channel_Request_Remap( UART1_DMA_Channel, DMA_REMAP_USART1_RX);<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://picgo-public-1215.oss-cn-shenzhen.aliyuncs.com/202312170041209.png" srcset="/img/loading.gif" lazyload alt="image"></p>
+<h5 id="空闲中断接收不定长数据代码："><a href="#空闲中断接收不定长数据代码：" class="headerlink" title="空闲中断接收不定长数据代码："></a>空闲中断接收不定长数据代码：</h5><h6 id="function-c"><a href="#function-c" class="headerlink" title="function.c"></a>function.c</h6><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;main.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;function.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><br><br><br>USART_InitType myUart_1;<br>GPIO_InitType myGPIOA_RXTX;<br>DMA_InitType my_dma_uart;<br><br><span class="hljs-type">uint8_t</span> RX_Buffer[ RX_BUFFERSIZE ];<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">my_GPIO_Init</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span><br>&#123;<br>    <span class="hljs-comment">// UART1 GPIO TX-PA9-AF4  RX-PA10-AF4</span><br>    RCC_AHB_Peripheral_Clock_Enable( RCC_AHB_PERIPH_GPIOA );<br>    <span class="hljs-comment">// LED GPIOB</span><br>    RCC_AHB_Peripheral_Clock_Enable( RCC_AHB_PERIPH_GPIOB );<br><br>    GPIO_Structure_Initialize( &amp;myGPIOA_RXTX );<br><br>    myGPIOA_RXTX.Pin            = UART1_RX_Pin;<br>    myGPIOA_RXTX.GPIO_Mode      = GPIO_MODE_AF_PP;<br>    myGPIOA_RXTX.GPIO_Slew_Rate = GPIO_SLEW_RATE_FAST;<br>    myGPIOA_RXTX.GPIO_Alternate = GPIO_AF5_USART1;<br>    myGPIOA_RXTX.GPIO_Pull      = GPIO_NO_PULL;<br>    GPIO_Peripheral_Initialize( UART1_Port, &amp;myGPIOA_RXTX );<br><br>    myGPIOA_RXTX.Pin            = UART1_TX_Pin;<br>    myGPIOA_RXTX.GPIO_Alternate = GPIO_AF5_USART1;<br>    GPIO_Peripheral_Initialize( UART1_Port, &amp;myGPIOA_RXTX );<br><br>    <span class="hljs-comment">// LED </span><br>    GPIO_Structure_Initialize( &amp;myGPIOA_RXTX );<br>    myGPIOA_RXTX.Pin                = LED_1_PIN;<br>    myGPIOA_RXTX.GPIO_Mode          = GPIO_MODE_OUT_PP;<br>    myGPIOA_RXTX.GPIO_Pull          = GPIO_NO_PULL;<br>    myGPIOA_RXTX.GPIO_Slew_Rate     = GPIO_SLEW_RATE_FAST;<br>    GPIO_Peripheral_Initialize( LED_PORT, &amp;myGPIOA_RXTX );<br><br>    myGPIOA_RXTX.Pin                = LED_2_PIN;<br>    GPIO_Peripheral_Initialize( LED_PORT, &amp;myGPIOA_RXTX );<br><br>    myGPIOA_RXTX.Pin                = LED_3_PIN;<br>    GPIO_Peripheral_Initialize( LED_PORT, &amp;myGPIOA_RXTX );<br><br>    myGPIOA_RXTX.Pin                = LED_4_PIN;<br>    GPIO_Peripheral_Initialize( LED_PORT, &amp;myGPIOA_RXTX );<br><br><br>    <span class="hljs-keyword">return</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">my_UART_Init</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span><br>&#123;<br>    RCC_APB2_Peripheral_Clock_Enable( RCC_APB2_PERIPH_USART1 );<br><br>    USART_Structure_Initializes( &amp;myUart_1 );<br><br>    myUart_1.BaudRate               = <span class="hljs-number">115200</span>;<br>    myUart_1.HardwareFlowControl    = USART_HFCTRL_NONE;<br>    myUart_1.Mode                   = USART_MODE_RX | USART_MODE_TX;<br>    myUart_1.Parity                 = USART_PE_NO;<br>    myUart_1.StopBits               = USART_STPB_1;<br>    myUart_1.WordLength             = USART_WL_8B;<br><br>    USART_Initializes( USART1, &amp;myUart_1 );<br><br>    USART_Enable( USART1 );<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">fputc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch, FILE* f)</span><br>&#123;<br>    USART_Data_Send(USART1, (<span class="hljs-type">uint8_t</span>)ch);<br>    <span class="hljs-keyword">while</span> (USART_Flag_Status_Get(USART1, USART_FLAG_TXDE) == RESET)<br>        ;<br><br>    <span class="hljs-keyword">return</span> (ch);<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">my_DMA_Init</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span><br>&#123;<br>    <span class="hljs-comment">/* 定义结构体 打开时钟 初始化通道 配置结构体 初始化DMA 映射请求 -&gt;外部再启动DMA USART_DMA_Transfer_Enable() DMA_Channel_Enable() */</span><br><br>    RCC_AHB_Peripheral_Clock_Enable( RCC_AHB_PERIPH_DMA );      <span class="hljs-comment">// 时钟树 DMA挂载在AHB总线上</span><br><br>    DMA_Reset( UART1_DMA_Channel );                                       <span class="hljs-comment">// N32 8 个可独立配置的 DMA 通道; N32G430手册P188-&gt;总共52个DMA请求，可以灵活配置映射; 此行只是初始化通道</span><br><br>    <span class="hljs-comment">/*******************************************************/</span><br>    my_dma_uart.PeriphAddr      = ( <span class="hljs-type">uint32_t</span> )&amp;USART1-&gt;DAT;             <span class="hljs-comment">// G430用户手册P478 USART的DAT寄存器 数据寄存器是USART基地址+0x04; (官方标准库居然没有宏定义...</span><br>    my_dma_uart.MemAddr         = ( <span class="hljs-type">uint32_t</span> )RX_Buffer;<br>    my_dma_uart.Direction       = DMA_DIR_PERIPH_SRC;                   <span class="hljs-comment">// 方向 外设是数据源; Memory是Dst Destination</span><br>    my_dma_uart.BufSize         = RX_BUFFERSIZE;<br><br>    my_dma_uart.PeriphInc       = DMA_PERIPH_INC_MODE_DISABLE;          <span class="hljs-comment">// 外设不增量</span><br>    my_dma_uart.MemoryInc       = DMA_MEM_INC_MODE_ENABLE;              <span class="hljs-comment">// 内存地址自增</span><br><br>    my_dma_uart.PeriphDataSize  = DMA_PERIPH_DATA_WIDTH_BYTE;<br>    my_dma_uart.MemDataSize     = DMA_MEM_DATA_WIDTH_BYTE;<br><br>    my_dma_uart.CircularMode    = DMA_CIRCULAR_MODE_DISABLE;<br>    <span class="hljs-comment">// my_dma_uart.CircularMode    = DMA_CIRCULAR_MODE_ENABLE;</span><br><br>    my_dma_uart.Priority        = DMA_CH_PRIORITY_HIGHEST;<br><br>    my_dma_uart.Mem2Mem         = DMA_MEM2MEM_DISABLE;<br>    <span class="hljs-comment">/*******************************************************/</span><br><br>    DMA_Initializes( UART1_DMA_Channel, &amp;my_dma_uart );<br><br>    DMA_Channel_Request_Remap( UART1_DMA_Channel, UART1_DMA_Remap_Config );          <span class="hljs-comment">// 此处才是映射请求到DMA通道</span><br>    DMA_Channel_Enable( UART1_DMA_Channel );<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">my_NVIC_Init</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span><br>&#123;<br>    NVIC_InitType my_NVIC_InitStruct;<br>    <span class="hljs-comment">/* IRQn_Type 根据Cortex-M3M4权威指南所述 芯片厂家会自己再设定中断号 所以应该到n32g430.h中找中断而不是到core_cm4.h中 */</span><br>    my_NVIC_InitStruct.NVIC_IRQChannel                      = UART1_Interrupt_IRQn;<br>    my_NVIC_InitStruct.NVIC_IRQChannelCmd                   = ENABLE;<br>    my_NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority    = <span class="hljs-number">1</span>;<br>    my_NVIC_InitStruct.NVIC_IRQChannelSubPriority           = <span class="hljs-number">1</span>;<br><br>    NVIC_Initializes( &amp;my_NVIC_InitStruct );<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">USART1_CLS_IDLEFlag</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span><br>&#123;<br>    <span class="hljs-type">uint32_t</span> Reg_Temp;<br>    Reg_Temp = USART1-&gt;STS;<br>    Reg_Temp = USART1-&gt;DAT;<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br><br><br><br></code></pre></td></tr></table></figure>
+
+<h6 id="function-h"><a href="#function-h" class="headerlink" title="function.h"></a>function.h</h6><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> __FUNCTION_H_</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> __FUNCTION_H_</span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">my_GPIO_Init</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">my_UART_Init</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">my_DMA_Init</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">my_NVIC_Init</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">USART1_CLS_IDLEFlag</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span>;<br><br><span class="hljs-keyword">extern</span> USART_InitType myUart_1;<br><span class="hljs-keyword">extern</span> GPIO_InitType myGPIOA_RXTX;<br><span class="hljs-keyword">extern</span> DMA_InitType my_dma_uart;<br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART1_RX_Pin    GPIO_PIN_10</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART1_TX_Pin    GPIO_PIN_9</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART1_Port      GPIOA</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> LED_PORT        GPIOB</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> LED_1_PIN       GPIO_PIN_13</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> LED_2_PIN       GPIO_PIN_3</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> LED_3_PIN       GPIO_PIN_8</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> LED_4_PIN       GPIO_PIN_14</span><br><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> RX_BUFFERSIZE   60</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART1_DMA_Channel       DMA_CH1</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART1_DMA_Remap_Config  DMA_REMAP_USART1_RX</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> UART1_Interrupt_IRQn    USART1_IRQn</span><br><span class="hljs-keyword">extern</span> <span class="hljs-type">uint8_t</span> RX_Buffer[ RX_BUFFERSIZE ];<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br><br><br></code></pre></td></tr></table></figure>
+
+<h6 id="n32g430-it-c"><a href="#n32g430-it-c" class="headerlink" title="n32g430_it.c"></a>n32g430_it.c</h6><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;n32g430_it.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;main.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;function.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string.h&gt;</span></span><br><br><span class="hljs-comment">/* 启动文件中可找到 */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">USART1_IRQHandler</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>    <span class="hljs-keyword">if</span>( RESET != USART_Flag_Status_Get( USART1, USART_FLAG_IDLEF ) )<br>    &#123;<br>        <span class="hljs-type">uint8_t</span> count = <span class="hljs-number">0</span>;<br>        <span class="hljs-comment">// USART_DMA_Transfer_Disable( USART1, USART_DMAREQ_RX );</span><br>        DMA_Channel_Disable( UART1_DMA_Channel );<br>        USART1_CLS_IDLEFlag();<br>        count = RX_BUFFERSIZE - DMA_Current_Data_Transfer_Number_Get( UART1_DMA_Channel );<br>        <span class="hljs-comment">// for( ; count &gt;= 0; count-- )</span><br>        <span class="hljs-comment">// &#123;</span><br>        <span class="hljs-comment">//     USART_Data_Send( USART1, RX_Buffer[ count - 1 ] );</span><br>        <br>        <span class="hljs-comment">// &#125;</span><br>        <span class="hljs-built_in">printf</span>( <span class="hljs-string">&quot;%s\n&quot;</span>, RX_Buffer );<br>        <span class="hljs-built_in">memset</span>( RX_Buffer, <span class="hljs-number">0</span>, RX_BUFFERSIZE );<br>        <span class="hljs-comment">// DMA_Memory_Address_Config( UART1_DMA_Channel, ( uint32_t )RX_Buffer );      // 如果不重新设置DMA接收首地址 会写入刚才写入数据的尾部</span><br>        <span class="hljs-comment">// DMA_Current_Data_Transfer_Number_Set( UART1_DMA_Channel, 0 );                   // 应该是调用这个函数 查数据手册-&gt;DMA部分&quot;DMA数据传输包含三个操作...对DMATXNUMx寄存器进行量减..&quot;-&gt;n32g430_dma.h找这个函数</span><br>        <span class="hljs-comment">// USART_DMA_Transfer_Enable( USART1, USART_DMAREQ_RX );</span><br><br>        <span class="hljs-comment">// DMA通道禁用即可重新加载内存地址而不是写入刚才的尾部</span><br>        DMA_Channel_Enable( UART1_DMA_Channel );<br><br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<h6 id="main-c"><a href="#main-c" class="headerlink" title="main.c"></a>main.c</h6><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs C"><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;main.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;FreeRTOS.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;task.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;function.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;FreeRTOS_Source.h&quot;</span></span><br><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> countof(a) (sizeof(a) / sizeof(*(a)))</span><br><br><span class="hljs-comment">// var</span><br>TaskHandle_t task_main_handler = <span class="hljs-literal">NULL</span>;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>    Main_Init();<br><br>    xTaskCreate( <br>        TaskMain,<br>        <span class="hljs-string">&quot;TaskMain&quot;</span>,<br>        <span class="hljs-number">256</span>,<br>        <span class="hljs-literal">NULL</span>,<br>        tskIDLE_PRIORITY + <span class="hljs-number">1</span>,<br>        &amp;task_main_handler<br>    );<br><br>    vTaskStartScheduler();<br><br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>);  <br>    <span class="hljs-keyword">return</span>;<br>&#125;<br><br><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">NVIC_Configuration</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>    <span class="hljs-comment">// NVIC_InitType NVIC_InitStructure;</span><br><br>    <span class="hljs-comment">// /* Enable the USARTy Interrupt */</span><br>    <span class="hljs-comment">// NVIC_InitStructure.NVIC_IRQChannel                   = USARTy_IRQn;</span><br>    <span class="hljs-comment">// NVIC_InitStructure.NVIC_IRQChannelSubPriority           = 0;</span><br>    <span class="hljs-comment">// NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;</span><br>    <span class="hljs-comment">// NVIC_Initializes(&amp;NVIC_InitStructure);</span><br><br>    <span class="hljs-comment">// /* Enable the USARTz Interrupt */</span><br>    <span class="hljs-comment">// NVIC_InitStructure.NVIC_IRQChannel                   = USARTz_IRQn;</span><br>    <span class="hljs-comment">// NVIC_InitStructure.NVIC_IRQChannelSubPriority           = 1;</span><br>    <span class="hljs-comment">// NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;</span><br>    <span class="hljs-comment">// NVIC_Initializes(&amp;NVIC_InitStructure);</span><br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">Main_Init</span><span class="hljs-params">( <span class="hljs-type">void</span> )</span><br>&#123;<br>    mySystickInit();<br>    my_GPIO_Init();<br>    my_UART_Init();<br>    my_DMA_Init();<br>    my_NVIC_Init();<br><br>    USART_DMA_Transfer_Enable( USART1, USART_DMAREQ_RX );<br>    USART_Interrput_Enable( USART1, USART_INT_IDLEF );<br>    <span class="hljs-comment">// USART_Flag_Status_Get( USART1, USART_FLAG_IDLEF );</span><br><br>  <br>&#125;<br><br><br><br></code></pre></td></tr></table></figure>
+
+<p>‍</p>
+<p>‍</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/N32/" class="category-chain-item">N32</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/" class="print-no-link">#嵌入式</a>
+      
+        <a href="/tags/ARM/" class="print-no-link">#ARM</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>N32串口空闲中断DMA接收不定长数据</div>
+      <div>http://example.com/2023/12/17/N32串口空闲中断DMA接收不定长数据/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>Banned104</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>December 17, 2023</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/12/17/N32G430%20FreeRTOS/" title="N32G430 FreeRTOS移植研究">
+                        <span class="hidden-mobile">N32G430 FreeRTOS移植研究</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
